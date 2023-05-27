@@ -235,6 +235,31 @@ def addhearing():
    flash("Hearing details added", "success")
    return render_template("firm.html")
    
+
+def get_contact_info(Advocate):
+    contact_info = {
+        'phone': Advocate.phone,
+        'email': Advocate.email,
+    }
+    return contact_info
+
+#display all the advocates name and details in admin dashboard
+@app.route('/admindashboard')
+def admindashboard():
+    advocates = Advocate.query.all()
+    advocate_list = []
+    
+    for advocate in advocates:
+        advocate_data = {
+            'advocate_name': advocate.advocate_name,
+            'email': advocate.email,
+            'contact_info': get_contact_info(advocate)  # Replace this with the actual function to get contact info
+        }
+        advocate_list.append(advocate_data)
+    
+    return render_template('admin_dashboard.html', advocates=advocate_list)
+
+
 if __name__ == '__main__':
    with app.app_context():
       db.create_all()
