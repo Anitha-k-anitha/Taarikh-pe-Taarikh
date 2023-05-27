@@ -45,6 +45,47 @@ class Client(db.Model):
       self.email = email
       self.mobile = mobile
       
+class Case(db.Model):
+   case_number = db.Column(db.Integer, primary_key=True)
+   case_name = db.Column(db.String(300))
+   client_name = db.Column(db.String(100), db.ForeignKey(Client.client_name))
+   opponent = db.Column(db.String(300))
+   court = db.Column(db.String(100))
+   case_type = db.Column(db.String(100))
+   description = db.Column(db.String(1000))
+   opponent_advocate = db.Column(db.String(100))
+   judge = db.Column(db.String(100))
+   filing_date = db.Column(db.Date)
+   assigned_advocates = db.db.Column(db.String(1000))
+
+   def __init__(self, case_number, case_name,client_name, opponent, court, case_type, description, opponent_advocate, judge, filing_date, assigned_advocates):
+      self.case_number = case_number
+      self.case_name = case_name
+      self.client_name = client_name
+      self.opponent = opponent
+      self.court = court
+      self.case_type = case_type
+      self.description = description
+      self.opponent_advocate = opponent_advocate
+      self.judge = judge
+      self.filing_date = filing_date
+      self.assigned_advocates = assigned_advocates
+   
+class Hearings(db.Model):
+   id = db.Column(db.Integer, primary_key=True, auto_increment=True)
+   case_number = db.Column(db.String(300))
+   license_number = db.Column(db.String(100), db.ForeignKey(Advocate.license_number))
+   description = db.Column(db.String(1000))
+   hearing_date = db.Column(db.Date)
+   next_hearing_date = db.Column(db.Date)
+
+   def __init__(self, case_number, id,license_number, hearing_date, next_hearing_date, case_type, description, hearing_date_advocate, judge, filing_date, assigned_advocates):
+      self.case_number = case_number
+      self.id = id
+      self.license_number = license_number
+      self.hearing_date = hearing_date
+      self.next_hearing_date = next_hearing_date
+      self.description = description
 
 
 @app.route('/')
