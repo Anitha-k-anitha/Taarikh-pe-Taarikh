@@ -24,20 +24,23 @@ class Advocate(db.Model):
    advocate_name = db.Column(db.String(100))
    email = db.Column(db.String(100))
    password = db.Column(db.String(100))
+   qualification = db.Column(db.String(100))
 
 
-   def __init__(self, license_number, advocate_name, email, password):
+   def __init__(self, license_number, advocate_name, email, password, qualification):
       self.license_number = license_number
       self.advocate_name = advocate_name
       self.email = email
       self.password = bcrypt.generate_password_hash(password).decode('utf-8')
+      self.qualification = qualification
       
    
 class Client(db.Model):
    id = db.Column(db.Integer,primary_key=True)
    name = db.Column(db.String(100),nullable=False)
    email = db.Column(db.String(100), primary_key=True)
-   password = db.Column(db.String(100))
+   mobile = db.Column(db.String(10),nullable=False)
+
 
 
    def __init__(self, id, name,email, mobile):
@@ -144,8 +147,8 @@ def addclient():
 #get all cases
 @app.route('/cases',methods=["GET"])
 def cases():
-   licence_number = current_user.licence_number()
-   cases = Case.query.filter_by(licence_number = licence_number).order_by(Case.id).all()
+   license_number = current_user.license_number()
+   cases = Case.query.filter_by(license_number = license_number).order_by(Case.id).all()
    case_list = []
    for case in cases:
       case_data = {
@@ -163,17 +166,77 @@ def cases():
 def datedcases():
    licence_number = current_user.licence_number()
    date: request.args.get('date')
-   cases = Case.query.filter_by(licence_number = licence_number).order_by(Case.id).all()
+   cases = Case.query.filter_by(licence_number = licence_number, hearing_date=date).order_by(Case.id).all()
    case_list = []
    for case in cases:
       case_data = {
-         'Case_number': Case.case_number,
-         'name': Case.case_name,
-         'hearing_date': Case.hearing_date.strftime('%Y-%m-%d'),
-         'court':Case.court
+         'Case_number': case.case_number,
+         'name': case.case_name,
+         'hearing_date': case.hearing_date.strftime('%Y-%m-%d'),
+         'court':case.court
         }
       case_list.append(case_data)
    return jsonify(case_list)
+
+
+
+#add advocate
+@app.route('/add-advocate',methods=["POST"])   
+def addadvocate():
+   licence_number = request.form['licence_number']
+   advocate_name = request.form['advocate_name']
+   email = request.form['email']
+   password = request.form['password']
+   qualification = request.form['qualification']
+   
+   new_advocate = Advocate(licence_number=licence_number, advocate_name=advocate_name, email=email, password=password, qualification=qualification)
+   db.session.add(new_advocate)
+   db.session.commit()
+   
+   flash("Advocate added succesfully", "success")
+   return render_template("firm.html")
+
+
+#add cases
+
+@app.route('/add-case',methods=["post"])
+def addcase():
+   case_number = request.form['case_number']
+   case_name = request.form['case_name']
+   client_name = request.form['client_name']
+   opponent = request.form['opponent']
+   court =request.form['court']
+   case_type = request.form['case_type']
+   description = request.form['description']
+   opponent_advocate = request.form['opponent_advocate']
+   judge = request.form['judge']
+   filing_date = request.form['filing_date']
+   assigned_advocates = request.form['assigned_advocates']
+   
+   
+   new_case = Case(case_number = case_number, case_name=case_name, client_name=client_name, opponent=opponent, court=court, case_type = case_type, description=description, opponent_advocate=opponent_advocate, judge=judge,filing_date=filing_date, assigned_advocates=assigned_advocates)
+   db.session.add(new_case)
+   db.session.commit()
+   flash("Case added succefully","success")
+   return render_template('firm.html')
+
+#add hearing
+@app.route('/add-hearing',methods=["POST"])
+def addhearing():
+   case_number = request.form['case_number']
+   id = request.form['id']
+   license_number = request.form['license_number']
+   hearing_date = request.form['hearing_date']
+   next_hearing_date = request.form['next_hearing_date']
+   description = request.form['description']
+   
+   new_hearing = Hearings(case_number = case_number, id=id, license_number=license_number, hearing_date=hearing_date, next_hearing_date=next_hearing_date,description=description)
+   db.session.add(new_hearing)
+   db.session.commit()
+   
+   
+   flash("Hearing details added", "success")
+   return render_template("firm.html")
    
 if __name__ == '__main__':
    with app.app_context():
