@@ -28,6 +28,19 @@ class Advocate(db.Model):
       self.password = bcrypt.generate_password_hash(password).decode('utf-8')
       
    
+class Client(db.Model):
+   id = db.Column(db.Integer,primary_key=True)
+   name = db.Column(db.String(100),nullable=False)
+   email = db.Column(db.String(100), primary_key=True)
+   password = db.Column(db.String(100))
+
+
+   def __init__(self, id, name,email, mobile):
+      self.id = id
+      self.name = name
+      self.email = email
+      self.mobile = mobile
+      
 
 
 @app.route('/')
@@ -63,6 +76,21 @@ def loginInd():
       return render_template('home.html')
 
 
+
+#create new client
+@app.route('/add_client',methods=["POST"])
+def addclient():
+   id = request.form['id']
+   name = request.form['name']
+   email = request.form['email']
+   mobile = request.form['mobile']
+
+   new_client = Client(id=id, name=name, email=email, mobile=mobile)
+   db.session.add(new_client)
+   db.session.commit()
+   
+   flash('Client added successfully!', 'success')
+   return render_template('same.html')
 if __name__ == '__main__':
    with app.app_context():
       db.create_all()
