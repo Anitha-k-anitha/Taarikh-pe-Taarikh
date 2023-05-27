@@ -19,11 +19,15 @@ class Admin(db.Model):
       self.password = bcrypt.generate_password_hash(password).decode('utf-8')
       
 class Advocate(db.Model):
-   email = db.Column(db.String(100), primary_key=True)
+   license_number = db.Column(db.String(100), primary_key=True)
+   advocate_name = db.Column(db.String(100))
+   email = db.Column(db.String(100))
    password = db.Column(db.String(100))
 
 
-   def __init__(self, email, password):
+   def __init__(self, license_number, advocate_name, email, password):
+      self.license_number = license_number
+      self.advocate_name = advocate_name
       self.email = email
       self.password = bcrypt.generate_password_hash(password).decode('utf-8')
       
