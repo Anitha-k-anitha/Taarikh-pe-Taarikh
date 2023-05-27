@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///students.sqlite3'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///taarikh.sqlite3'
 app.config['SECRET_KEY'] = "random string"
 
 db = SQLAlchemy(app)
@@ -18,7 +18,7 @@ class Admin(db.Model):
       self.email = email
       self.password = bcrypt.generate_password_hash(password).decode('utf-8')
       
-class Indiv(db.Model):
+class Advocate(db.Model):
    email = db.Column(db.String(100), primary_key=True)
    password = db.Column(db.String(100))
 
@@ -54,7 +54,7 @@ def loginInd():
    email = request.form['email']
    password = request.form['password']
    
-   user = Indiv.query.filter_by(email=email).first()
+   user = Advocate.query.filter_by(email=email).first()
    if user and bcrypt.check_password_hash(user.password, password):
       flash('Logged in successfully!', 'success')
       return render_template('indiv.html')
@@ -64,4 +64,7 @@ def loginInd():
 
 
 if __name__ == '__main__':
-   app.run(debug = True)
+   with app.app_context():
+      db.create_all()
+      
+      app.run(debug = True)
