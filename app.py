@@ -90,36 +90,39 @@ class Hearings(db.Model):
 
 
 @app.route('/')
-def home():
+def index():
    return render_template('index.html')
 
-
-@app.route('/login-firm', methods=["POST"])
+@app.route('/login-firm', methods=["POST", "GET"])
 def loginfirm():
-   email = request.form['email']
-   password = request.form['password']
+   if request.method == 'POST':
+      email = request.form['email']
+      password = request.form['password']
    
-   user = Admin.query.filter_by(email=email).first()
-   if user and bcrypt.check_password_hash(user.password, password):
-      flash('Logged in successfully!', 'success')
-      return render_template('firm.html')
-   else:
-      flash('Invalid email or password', 'error')
-      return render_template('home.html')
-   
+      user = Admin.query.filter_by(email=email).first()
+      if user and bcrypt.check_password_hash(user.password, password):
+         flash('Logged in successfully!', 'success')
+         return render_template('admin_home.html')
+      else:
+         flash('Invalid email or password', 'error')
+   return render_template('loginfirm.html')
+
+
+
 #login for advocate
-@app.route('/login-ind', methods=["POST"])
+@app.route('/login-ind', methods=["POST", "GET"])
 def loginInd():
-   email = request.form['email']
-   password = request.form['password']
+   if request.method == 'POST':
+      email = request.form['email']
+      password = request.form['password']
    
-   user = Advocate.query.filter_by(email=email).first()
-   if user and bcrypt.check_password_hash(user.password, password):
-      flash('Logged in successfully!', 'success')
-      return render_template('indiv.html')
-   else:
-      flash('Invalid email or password', 'error')
-      return render_template('home.html')
+      user = Advocate.query.filter_by(email=email).first()
+      if user and bcrypt.check_password_hash(user.password, password):
+         flash('Logged in successfully!', 'success')
+         return render_template('advocate_home.html')
+      else:
+         flash('Invalid email or password', 'error')
+   return render_template('loginindiv.html')
 
 
 
