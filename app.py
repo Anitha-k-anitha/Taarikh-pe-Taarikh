@@ -24,15 +24,13 @@ class Advocate(db.Model):
    advocate_name = db.Column(db.String(100))
    email = db.Column(db.String(100))
    password = db.Column(db.String(100))
-   qualification = db.Column(db.String(100))
 
 
-   def __init__(self, license_number, advocate_name, email, password, qualification):
+   def __init__(self, license_number, advocate_name, email, password):
       self.license_number = license_number
       self.advocate_name = advocate_name
       self.email = email
       self.password = bcrypt.generate_password_hash(password).decode('utf-8')
-      self.qualification = qualification
       
    
 class Client(db.Model):
@@ -165,7 +163,7 @@ def cases():
 @app.route('/datedcases',methods=["GET"])
 def datedcases():
    licence_number = current_user.licence_number()
-   date: request.args.get('date')
+   date = request.args.get('date')
    cases = Case.query.filter_by(licence_number = licence_number, hearing_date=date).order_by(Case.id).all()
    case_list = []
    for case in cases:
@@ -187,9 +185,8 @@ def addadvocate():
    advocate_name = request.form['advocate_name']
    email = request.form['email']
    password = request.form['password']
-   qualification = request.form['qualification']
    
-   new_advocate = Advocate(licence_number=licence_number, advocate_name=advocate_name, email=email, password=password, qualification=qualification)
+   new_advocate = Advocate(licence_number=licence_number, advocate_name=advocate_name, email=email, password=password)
    db.session.add(new_advocate)
    db.session.commit()
    
@@ -241,5 +238,4 @@ def addhearing():
 if __name__ == '__main__':
    with app.app_context():
       db.create_all()
-      
       app.run(debug = True)
