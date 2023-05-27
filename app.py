@@ -1,6 +1,7 @@
-from flask import Flask, request, flash, url_for, redirect, render_template
+from flask import Flask, request, flash, render_template, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
+from flask_login import current_user
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///taarikh.sqlite3'
@@ -48,7 +49,7 @@ class Client(db.Model):
 class Case(db.Model):
    case_number = db.Column(db.Integer, primary_key=True)
    case_name = db.Column(db.String(300))
-   client_name = db.Column(db.String(100), db.ForeignKey(Client.client_name))
+   client_name = db.Column(db.String(100), db.ForeignKey(Client.name))
    opponent = db.Column(db.String(300))
    court = db.Column(db.String(100))
    case_type = db.Column(db.String(100))
@@ -56,7 +57,7 @@ class Case(db.Model):
    opponent_advocate = db.Column(db.String(100))
    judge = db.Column(db.String(100))
    filing_date = db.Column(db.Date)
-   assigned_advocates = db.db.Column(db.String(1000))
+   assigned_advocates = db.Column(db.String(1000))
 
    def __init__(self, case_number, case_name,client_name, opponent, court, case_type, description, opponent_advocate, judge, filing_date, assigned_advocates):
       self.case_number = case_number
@@ -72,7 +73,7 @@ class Case(db.Model):
       self.assigned_advocates = assigned_advocates
    
 class Hearings(db.Model):
-   id = db.Column(db.Integer, primary_key=True, auto_increment=True)
+   id = db.Column(db.Integer, primary_key=True, autoincrement=True)
    case_number = db.Column(db.String(300))
    license_number = db.Column(db.String(100), db.ForeignKey(Advocate.license_number))
    description = db.Column(db.String(1000))
@@ -90,7 +91,7 @@ class Hearings(db.Model):
 
 @app.route('/')
 def home():
-   return render_template('home.html')
+   return render_template('index.html')
 
 
 @app.route('/login-firm', methods=["POST"])
@@ -106,7 +107,7 @@ def loginfirm():
       flash('Invalid email or password', 'error')
       return render_template('home.html')
    
-   
+#login for advocate
 @app.route('/login-ind', methods=["POST"])
 def loginInd():
    email = request.form['email']
@@ -136,6 +137,41 @@ def addclient():
    
    flash('Client added successfully!', 'success')
    return render_template('same.html')
+
+#get all cases
+@app.route('/cases',methods=["GET"])
+def cases():
+   licence_number = current_user.licence_number()
+   cases = Case.query.filter_by(licence_number = licence_number).order_by(Case.id).all()
+   case_list = []
+   for case in cases:
+      case_data = {
+         'Case_number': Case.case_number,
+         'name': Case.case_name,
+         'hearing_date': Case.hearing_date.strftime('%Y-%m-%d'),
+         'court':Case.court
+        }
+      case_list.append(case_data)
+   return jsonify(case_list)
+   
+   
+#get dated cases
+@app.route('/datedcases',methods=["GET"])
+def datedcases():
+   licence_number = current_user.licence_number()
+   date: request.args.get('date')
+   cases = Case.query.filter_by(licence_number = licence_number).order_by(Case.id).all()
+   case_list = []
+   for case in cases:
+      case_data = {
+         'Case_number': Case.case_number,
+         'name': Case.case_name,
+         'hearing_date': Case.hearing_date.strftime('%Y-%m-%d'),
+         'court':Case.court
+        }
+      case_list.append(case_data)
+   return jsonify(case_list)
+   
 if __name__ == '__main__':
    with app.app_context():
       db.create_all()
