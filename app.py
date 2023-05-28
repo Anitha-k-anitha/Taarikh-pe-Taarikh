@@ -162,9 +162,9 @@ def cases():
 #get dated cases
 @app.route('/datedcases',methods=["GET"])
 def datedcases():
-   licence_number = current_user.licence_number()
+   license_number = current_user.license_number()
    date = request.args.get('date')
-   cases = Case.query.filter_by(licence_number = licence_number, hearing_date=date).order_by(Case.id).all()
+   cases = Case.query.filter_by(license_number = license_number, hearing_date=date).order_by(Case.id).all()
    case_list = []
    for case in cases:
       case_data = {
@@ -181,12 +181,12 @@ def datedcases():
 #add advocate
 @app.route('/add-advocate',methods=["POST"])   
 def addadvocate():
-   licence_number = request.form['licence_number']
+   license_number = request.form['licence_number']
    advocate_name = request.form['advocate_name']
    email = request.form['email']
    password = request.form['password']
    
-   new_advocate = Advocate(licence_number=licence_number, advocate_name=advocate_name, email=email, password=password)
+   new_advocate = Advocate(license_number=license_number, advocate_name=advocate_name, email=email, password=password)
    db.session.add(new_advocate)
    db.session.commit()
    
