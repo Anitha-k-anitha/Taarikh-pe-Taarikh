@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Calendar</title>
+    <script>
+        function getDate(selectedDate) {
+            var date = selectedDate.value;
+            console.log("Selected date: " + date);
+            // You can use the 'date' variable for further processing or store it in a hidden input field, send it to the server, etc.
+        }
+    </script>
+</head>
+<body>
+    <h1>Calendar</h1>
+    <label for="datepicker">Select a date:</label>
+    <input type="date" id="datepicker" onchange="getDate(this)" name="date">
+</body>
+</html>
