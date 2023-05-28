@@ -120,7 +120,7 @@ def loginInd():
       user = Advocate.query.filter_by(email=email).first()
       if user and bcrypt.check_password_hash(user.password, password):
          flash('Logged in successfully!', 'success')
-         return render_template('advocate_home.html')
+         return render_template('advocate_dashboard.html')
       else:
          flash('Invalid email or password', 'error')
    return render_template('loginindiv.html')
@@ -179,19 +179,20 @@ def datedcases():
 
 
 #add advocate
-@app.route('/add-advocate',methods=["POST"])   
+@app.route('/add-advocate',methods=["POST", "GET"])   
 def addadvocate():
-   license_number = request.form['licence_number']
-   advocate_name = request.form['advocate_name']
-   email = request.form['email']
-   password = request.form['password']
+   if request.method == 'POST':
+      license_number = request.form['license_number']
+      advocate_name = request.form['advocate_name']
+      email = request.form['email']
+      password = request.form['password']
    
-   new_advocate = Advocate(license_number=license_number, advocate_name=advocate_name, email=email, password=password)
-   db.session.add(new_advocate)
-   db.session.commit()
+      new_advocate = Advocate(license_number=license_number, advocate_name=advocate_name, email=email, password=password)
+      db.session.add(new_advocate)
+      db.session.commit()
    
-   flash("Advocate added succesfully", "success")
-   return render_template("firm.html")
+      flash("Advocate added succesfully", "success")
+   return render_template("add_advocate.html")
 
 
 #add cases
