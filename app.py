@@ -1,8 +1,7 @@
-from flask import Flask, request, flash, render_template, jsonify, request
+from flask import Flask, request, flash, render_template, jsonify, request, session, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
-from flask_login import current_user
-
+from flask_login import LoginManager, current_user, login_user, logout_user, login_required
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///taarikh.sqlite3'
@@ -10,6 +9,13 @@ app.config['SECRET_KEY'] = "random string"
 
 db = SQLAlchemy(app)
 bcrypt=Bcrypt(app)
+login_manager = LoginManager(app)
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    # Code to load and return the user object based on the user_id
+    pass
 
 class Admin(db.Model):
    email = db.Column(db.String(100), primary_key=True)
@@ -103,6 +109,7 @@ def loginfirm():
       user = Admin.query.filter_by(email=email).first()
       if user and bcrypt.check_password_hash(user.password, password):
          flash('Logged in successfully!', 'success')
+         print(session)
          return render_template('admin_home.html')
       else:
          flash('Invalid email or password', 'error')
@@ -120,6 +127,8 @@ def loginInd():
       user = Advocate.query.filter_by(email=email).first()
       if user and bcrypt.check_password_hash(user.password, password):
          flash('Logged in successfully!', 'success')
+         print(session)
+         session['advocate_name'] = user.advocate_name 
          return render_template('advocate_dashboard.html')
       else:
          flash('Invalid email or password', 'error')
@@ -143,28 +152,36 @@ def addclient():
    return render_template('same.html')
 
 #get all cases
-@app.route('/cases',methods=["GET"])
+@app.route('/cases', methods=["GET"])
 def cases():
-   license_number = current_user.license_number()
-   cases = Case.query.filter_by(license_number = license_number).order_by(Case.id).all()
+   if not session['advocate_name']:
+      return redirect(url_for('loginInd')) 
+   assigned_advocates = session['advocate_name']
+   cases = Case.query.filter_by(assigned_advocates=assigned_advocates).order_by(Case.case_number).all()
    case_list = []
+    
    for case in cases:
       case_data = {
-         'Case_number': Case.case_number,
-         'name': Case.case_name,
-         'hearing_date': Case.hearing_date.strftime('%Y-%m-%d'),
-         'court':Case.court
-        }
+         
+         'Case_number': case.case_number,
+         'name': case.case_name,
+         'hearing_date': case.hearing_date.strftime('%Y-%m-%d'),
+         'court': case.court
+      }
       case_list.append(case_data)
-   return jsonify(case_list)
+    
+   return render_template('cases.html', cases=case_list)
+
    
    
 #get dated cases
 @app.route('/datedcases',methods=["GET"])
 def datedcases():
-   license_number = current_user.license_number()
-   date = request.args.get('date')
-   cases = Case.query.filter_by(license_number = license_number, hearing_date=date).order_by(Case.id).all()
+   if not session['advocate_name']:
+      return redirect(url_for('loginInd'))
+   date= request.args.get('date')
+   assigned_advocates = session['advocate_name']
+   cases = Case.query.filter_by(assigned_advocates=assigned_advocates, filing_date=date).order_by(Case.case_number).all()
    case_list = []
    for case in cases:
       case_data = {
@@ -174,7 +191,7 @@ def datedcases():
          'court':case.court
         }
       case_list.append(case_data)
-   return jsonify(case_list)
+   return render_template('cases.html', cases=case_list)
 
 
 

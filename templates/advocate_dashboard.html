@@ -5,171 +5,156 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Taarikh-pe-Taarikh</title>
-    <link rel="stylesheet" href="{{ url_for('static',filename='css/advocate_dashboard.css') }}">
+    <style>
+        .calendar {
+            text-align: center;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        table {
+            margin: 0 auto;
+        }
+
+        th, td {
+            width: 30px;
+            height: 30px;
+        }
+    </style>
 </head>
 <body>
-    <header><h1>Advocate Dashboard</h1></header>
-        <div class="mainDiv">
+    <header>
+        <h1>Advocate Dashboard</h1>
+    </header>
+    <div class="mainDiv">
         <div>
-            <h1>Hello {Advocate name}</h1>
+            <h1>Hello {{ session.advocate_name }}</h1>
         </div>
-        <br>
-        <br>
+        <br><br>
         <span class="search-container">
             <form action="/search" method="GET">
-              <input type="text" name="query" placeholder="Search...">
-              <button  type="submit">Search</button>
-            </form> 
+                <input type="text" name="query" placeholder="Search...">
+                <button type="submit">Search</button>
+            </form>
         </span>
         <br><br>
-            <button class="button1">List of Active Cases</button>
+        <form action="/cases" method="GET">
+          <button class="button1" type="submit">List of Active Cases</button>
+        </form>
         
-        
-        <br>
-        <br>
-
+        <br><br>
         <div>
-            <button class="button1">Track Your Hearings!</button>
-            <br>
-            <br>
+          <form action="/datedcases" method="GET">
+            <button class="button1" type="submit">Track your hearings</button>
+          </form>
+            <br><br>
             <div class="calendar">
-                <div class="calendar-header">
-                  <button id="prevYearBtn">&lt;&lt;</button>
-                  <button id="prevMonthBtn">&lt;</button>
-                  <h2 id="monthYear"></h2>
-                  <button id="nextMonthBtn">&gt;</button>
-                  <button id="nextYearBtn">&gt;&gt;</button>
+                <div>
+                    <h2 id="selectedDate"></h2> <!-- Display the selected date -->
                 </div>
                 <table>
-                  <thead>
-                    <tr>
-                      <th>Sun</th>
-                      <th>Mon</th>
-                      <th>Tue</th>
-                      <th>Wed</th>
-                      <th>Thu</th>
-                      <th>Fri</th>
-                      <th>Sat</th>
-                    </tr>
-                  </thead>
-                  <tbody id="calendarBody">
-                    <!-- Calendar rows will be dynamically generated here -->
-                  </tbody>
+                    <thead>
+                        <tr>
+                            <th>Sun</th>
+                            <th>Mon</th>
+                            <th>Tue</th>
+                            <th>Wed</th>
+                            <th>Thu</th>
+                            <th>Fri</th>
+                            <th>Sat</th>
+                        </tr>
+                    </thead>
+                    <tbody id="calendarBody">
+                        <!-- Calendar rows will be dynamically generated here -->
+                    </tbody>
                 </table>
-              </div>
-              
-              
+            </div>
         </div>
-        
     </div>
     <script>
-       // Get calendar elements
-const calendarBody = document.getElementById('calendarBody');
-const monthYearElement = document.getElementById('monthYear');
-const prevMonthBtn = document.getElementById('prevMonthBtn');
-const nextMonthBtn = document.getElementById('nextMonthBtn');
-const prevYearBtn = document.getElementById('prevYearBtn');
-const nextYearBtn = document.getElementById('nextYearBtn');
+        const calendarBody = document.getElementById('calendarBody');
+        const selectedDateElement = document.getElementById('selectedDate');
 
-// Initial date setup
-const currentDate = new Date();
-let currentMonth = currentDate.getMonth();
-let currentYear = currentDate.getFullYear();
+        // Initial date setup
+        const currentDate = new Date();
+        let currentMonth = currentDate.getMonth();
+        let currentYear = currentDate.getFullYear();
 
-// Event listeners for navigation buttons
-prevMonthBtn.addEventListener('click', goToPreviousMonth);
-nextMonthBtn.addEventListener('click', goToNextMonth);
-prevYearBtn.addEventListener('click', goToPreviousYear);
-nextYearBtn.addEventListener('click', goToNextYear);
+        // Generate the calendar for the initial month
+        generateCalendar(currentMonth, currentYear);
 
-// Function to generate the calendar for a given month and year
-function generateCalendar(month, year) {
-  // Clear existing calendar
-  calendarBody.innerHTML = '';
+        // Function to generate the calendar for a given month and year
+        function generateCalendar(month, year) {
+            // Clear existing calendar
+            calendarBody.innerHTML = '';
 
-  // Set the month and year in the header
-  const monthYearString = new Date(year, month).toLocaleString('default', { month: 'long', year: 'numeric' });
-  monthYearElement.textContent = monthYearString;
+            // Set the month and year in the header
+            const monthYearString = new Date(year, month).toLocaleString('default', { month: 'long', year: 'numeric' });
+            selectedDateElement.textContent = monthYearString;
 
-  // Get the first day of the month
-  const firstDay = new Date(year, month, 1);
+            // Get the first day of the month
+            const firstDay = new Date(year, month, 1);
 
-  // Calculate the number of days in the month
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
+            // Calculate the number of days in the month
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  // Determine the starting position of the first day
-  const startingPos = firstDay.getDay();
+            // Determine the starting position of the first day
+            const startingPos = firstDay.getDay();
 
-  // Generate calendar rows
-  let date = 1;
-  for (let i = 0; i < 6; i++) {
-    const row = document.createElement('tr');
+            // Generate calendar rows
+            let date = 1;
+            for (let i = 0; i < 6; i++) {
+                const row = document.createElement('tr');
 
-    for (let j = 0; j < 7; j++) {
-      const cell = document.createElement('td');
+                for (let j = 0; j < 7; j++) {
+                    const cell = document.createElement('td');
 
-      if (i === 0 && j < startingPos) {
-        // Empty cells before the first day of the month
-        cell.textContent = '';
-      } else if (date > daysInMonth) {
-        // Empty cells after the last day of the month
-        cell.textContent = '';
-      } else {
-        // Fill in the date and add click event listener
-        cell.textContent = date;
-        cell.addEventListener('click', () => {
-          const selectedDate = new Date(year, month, date);
-          const formattedDate = selectedDate.toISOString().split('T')[0]; // Format the date as needed
+                    if (i === 0 && j < startingPos) {
+                        // Empty cells before the first day of the month
+                        cell.textContent = '';
+                    } else if (date > daysInMonth) {
+                        // Empty cells after the last day of the month
+                        cell.textContent = '';
+                    } else {
+                        // Fill in the date and add click event listener
+                        cell.textContent = date;
+                        cell.addEventListener('click', () => {
+                            const selectedDate = new Date(year, month, date);
+                            const formattedDate = selectedDate.toISOString().split('T')[0]; 
+                            
+                            selectedDateElement.textContent = formattedDate;
 
-          // Redirect to a different page with the selected date
-          window.location.href = '/path/to/destination/page?date=' + formattedDate;
-        });
+                            
+                            fetch('/datedcases', {
+                                method: 'GET',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ date: formattedDate })
+                            })
+                                .then(response => {
+                                    // Handle the response from the server if needed
+                                })
+                                .catch(error => {
+                                    // Handle any errors that occur during the request
+                                });
+                        });
 
-        date++;
-      }
+                        date++;
+                    }
 
-      row.appendChild(cell);
-    }
+                    row.appendChild(cell);
+                }
 
-    calendarBody.appendChild(row);
-  }
-}
+                calendarBody.appendChild(row);
+            }
+        }
 
-// Function to navigate to the previous month
-function goToPreviousMonth() {
-  currentMonth--;
-  if (currentMonth < 0) {
-    currentMonth = 11;
-    currentYear--;
-  }
-  generateCalendar(currentMonth, currentYear);
-}
-
-// Function to navigate to the next month
-function goToNextMonth() {
-  currentMonth++;
-  if (currentMonth > 11) {
-    currentMonth = 0;
-    currentYear++;
-  }
-  generateCalendar(currentMonth, currentYear);
-}
-
-// Function to navigate to the previous year
-function goToPreviousYear() {
-  currentYear--;
-  generateCalendar(currentMonth, currentYear);
-}
-
-// Function to navigate to the next year
-function goToNextYear() {
-  currentYear++;
-  generateCalendar(currentMonth, currentYear);
-}
-
-// Generate the calendar for the initial month
-generateCalendar(currentMonth, currentYear);
-
-       </script>
+    </script>
 </body>
 </html>
