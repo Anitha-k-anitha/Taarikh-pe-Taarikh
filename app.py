@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import current_user
 
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///taarikh.sqlite3'
 app.config['SECRET_KEY'] = "random string"
@@ -88,7 +89,6 @@ class Hearings(db.Model):
       self.hearing_date = hearing_date
       self.next_hearing_date = next_hearing_date
       self.description = description
-
 
 @app.route('/')
 def index():
